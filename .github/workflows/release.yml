@@ -1,12 +1,30 @@
-name: Draft release
+name: Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag (must match VERSION)'
+        required: true
+        default: 'v1.1.0'
+        type: string
+      publish:
+        description: 'Publish immediately after all checks pass'
+        required: true
+        default: false
+        type: boolean
 permissions:
   contents: write
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 jobs:
   release:
     runs-on: macos-26
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      PUBLISH_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.publish }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -14,7 +32,12 @@ jobs:
           fetch-depth: 0
       - name: Verify version tag
         shell: bash
-        run: test "$GITHUB_REF_NAME" = "v$(cat VERSION | tr -d '\n')"
+        run: |
+          test "$RELEASE_TAG" = "v$(cat VERSION | tr -d '\n')"
+          git check-ref-format "refs/tags/$RELEASE_TAG"
+          if git show-ref --verify --quiet "refs/tags/$RELEASE_TAG"; then
+            test "$(git rev-parse "$RELEASE_TAG^{commit}")" = "$GITHUB_SHA"
+          fi
       - name: Build Universal app
         run: python3 scripts/build.py
       - name: Test
@@ -28,12 +51,17 @@ jobs:
           brew list --versions gitleaks >/dev/null || brew install gitleaks
           gitleaks git --redact --ignore-gitleaks-allow --log-opts=--all .
           gitleaks dir --redact --ignore-gitleaks-allow --max-archive-depth 4 dist
-      - name: Create draft with source and checksums
+      - name: Create release with source and checksums
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          gh release create "$GITHUB_REF_NAME" \
+          release_args=(--draft)
+          if [ "$PUBLISH_RELEASE" = "true" ]; then
+            release_args=(--latest)
+          fi
+          gh release create "$RELEASE_TAG" \
             dist/*.zip dist/SHA256SUMS.txt dist/BUILD-INFO.json \
-            --verify-tag --draft --title "Tube Switch ${GITHUB_REF_NAME#v}" \
+            --target "$GITHUB_SHA" "${release_args[@]}" \
+            --title "Tube Switch ${RELEASE_TAG#v}" \
             --notes-file docs/RELEASE_NOTES.md
