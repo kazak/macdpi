@@ -1,0 +1,39 @@
+name: Draft release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Verify version tag
+        shell: bash
+        run: test "$GITHUB_REF_NAME" = "v$(cat VERSION | tr -d '\n')"
+      - name: Build Universal app
+        run: python3 scripts/build.py
+      - name: Test
+        env:
+          TPWS_BIN: ${{ github.workspace }}/dist/Tube Switch.app/Contents/Resources/tpws
+        run: python3 -m unittest discover -s tests -v
+      - name: Check release archives for keys and local state
+        run: python3 scripts/audit.py --artifacts dist/*.zip
+      - name: Scan git history and archives with Gitleaks
+        run: |
+          brew list --versions gitleaks >/dev/null || brew install gitleaks
+          gitleaks git --redact --ignore-gitleaks-allow --log-opts=--all .
+          gitleaks dir --redact --ignore-gitleaks-allow --max-archive-depth 4 dist
+      - name: Create draft with source and checksums
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            dist/*.zip dist/SHA256SUMS.txt dist/BUILD-INFO.json \
+            --verify-tag --draft --title "Tube Switch ${GITHUB_REF_NAME#v}" \
+            --notes-file docs/RELEASE_NOTES.md

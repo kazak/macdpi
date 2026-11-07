@@ -1,0 +1,5 @@
+Project: bol-van/zapret (tpws)
+Commit: 73ee2aa04e6e94922e7dc07554a1c3a456dc3201
+Source: https://github.com/bol-van/zapret/tree/73ee2aa04e6e94922e7dc07554a1c3a456dc3201
+Archive SHA256: ef45445d6cc56dbe586f7a4a90bc7a578cc7259367f1d19d38b2091c209b779e
+License: MIT (see ZAPRET-LICENSE.txt and notices inside source files)
