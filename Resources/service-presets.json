@@ -1,0 +1,38 @@
+[
+  {
+    "id": "youtube",
+    "title": "YouTube",
+    "url": "https://www.youtube.com/",
+    "symbol": "play.rectangle",
+    "defaultEnabled": true,
+    "note": "Видео через TCP. Результат зависит от провайдера.",
+    "domains": ["youtube.com", "youtu.be", "youtube-nocookie.com", "googlevideo.com", "ytimg.com", "ggpht.com", "youtubei.googleapis.com", "youtube.googleapis.com"]
+  },
+  {
+    "id": "discord",
+    "title": "Discord",
+    "url": "https://discord.com/app",
+    "symbol": "bubble.left.and.bubble.right",
+    "defaultEnabled": true,
+    "note": "Веб-версия, чат и вложения. Голосовые каналы через UDP не поддерживаются.",
+    "domains": ["discord.com", "discord.gg", "discordapp.com", "discordapp.net", "discordcdn.com", "discord.media", "discord.co", "discord.app", "discordactivities.com", "discord-activities.com", "discordstatus.com", "dis.gd", "discord-attachments-uploads-prd.storage.googleapis.com"]
+  },
+  {
+    "id": "twitch",
+    "title": "Twitch",
+    "url": "https://www.twitch.tv/",
+    "symbol": "tv",
+    "defaultEnabled": false,
+    "note": "Дополнительный профиль для сайта и трансляций через TCP. Требует проверки у вашего провайдера.",
+    "domains": ["twitch.tv", "ttvnw.net", "jtvnw.net", "twitchcdn.net", "ext-twitch.tv", "live-video.net", "twitchsvc.net"]
+  },
+  {
+    "id": "soundcloud",
+    "title": "SoundCloud",
+    "url": "https://soundcloud.com/",
+    "symbol": "waveform",
+    "defaultEnabled": false,
+    "note": "Дополнительный профиль для сайта и аудио через TCP. Требует проверки у вашего провайдера.",
+    "domains": ["soundcloud.com", "sndcdn.com", "soundcloud.cloud"]
+  }
+]

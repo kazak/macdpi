@@ -1,0 +1,35 @@
+name: Build and test
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Build Universal app
+        run: python3 scripts/build.py
+      - name: Test local service and release contents
+        env:
+          TPWS_BIN: ${{ github.workspace }}/dist/Tube Switch.app/Contents/Resources/tpws
+        run: python3 -m unittest discover -s tests -v
+      - name: Check release archives for keys and local state
+        run: python3 scripts/audit.py --artifacts dist/*.zip
+      - name: Scan git history and archives with Gitleaks
+        run: |
+          brew list --versions gitleaks >/dev/null || brew install gitleaks
+          gitleaks git --redact --ignore-gitleaks-allow --log-opts=--all .
+          gitleaks dir --redact --ignore-gitleaks-allow --max-archive-depth 4 dist
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Tube-Switch-preview
+          path: |
+            dist/*.zip
+            dist/SHA256SUMS.txt
+            dist/BUILD-INFO.json
